@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Budget Tracker</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ff6b9d 0%, #ffc1cc 50%, #ff8fab 100%);
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    .floating-elements {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+      border-radius: 50%;
+      animation: float 6s ease-in-out infinite;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 192, 203, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .floating-elements:nth-child(1) {
+      top: 10%;
+      left: 5%;
+      width: 80px;
+      height: 80px;
+      animation-delay: 0s;
+    }
+    
+    .floating-elements:nth-child(2) {
+      top: 20%;
+      right: 10%;
+      width: 70px;
+      height: 70px;
+      animation-delay: 2s;
+    }
+    
+    .floating-elements:nth-child(3) {
+      bottom: 30%;
+      left: 8%;
+      width: 75px;
+      height: 75px;
+      animation-delay: 4s;
+    }
+    
+    .floating-elements:nth-child(4) {
+      bottom: 15%;
+      right: 5%;
+      width: 85px;
+      height: 85px;
+      animation-delay: 1s;
+    }
+    
+    .floating-elements:nth-child(5) {
+      top: 50%;
+      left: 2%;
+      width: 60px;
+      height: 60px;
+      animation-delay: 3s;
+    }
+    
+    .floating-elements:nth-child(6) {
+      top: 60%;
+      right: 3%;
+      width: 90px;
+      height: 90px;
+      animation-delay: 5s;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); }
+      25% { transform: translateY(-15px) rotate(2deg) scale(1.05); }
+      50% { transform: translateY(-10px) rotate(-1deg) scale(0.95); }
+      75% { transform: translateY(-20px) rotate(1deg) scale(1.02); }
+    }
+    
+    h1 {
+      text-align: center;
+      color: white;
+      font-size: 2.5rem;
+      margin-bottom: 30px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      font-weight: 300;
+    }
+    
+    .main-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      position: relative;
+      z-index: 2;
+    }
+    
+    .left-panel, .right-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 32px rgba(255, 107, 157, 0.2);
+      border: 1px solid rgba(255, 192, 203, 0.3);
+    }
+    
+    .panel-title {
+      font-size: 1.5rem;
+      color: #2d3748;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    
+    form {
+      display: grid;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    input, select, button {
+      padding: 15px;
+      font-size: 1rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+    
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    button {
+      background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+      color: white;
+      cursor: pointer;
+      border: none;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+    
+    .stat-card {
+      background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+      border-left: 4px solid #ff6b9d;
+    }
+    
+    .stat-card.income { border-left-color: #e91e63; }
+    .stat-card.expense { border-left-color: #ad1457; }
+    .stat-card.savings { border-left-color: #c2185b; }
+    .stat-card.balance { border-left-color: #880e4f; }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: #718096;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2d3748;
+    }
+    
+    .stat-value.positive { color: #48bb78; }
+    .stat-value.negative { color: #f56565; }
+    
+    .entry-list {
+      max-height: 300px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+    
+    .entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      margin-bottom: 10px;
+      background: white;
+      border-radius: 10px;
+      border-left: 4px solid #e2e8f0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .entry.income { border-left-color: #48bb78; }
+    .entry.expense { border-left-color: #f56565; }
+    .entry.savings { border-left-color: #4299e1; }
+    
+    .entry-info {
+      flex: 1;
+    }
+    
+    .entry-category {
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 2px;
+    }
+    
+    .entry-description {
+      font-size: 0.9rem;
+      color: #718096;
+    }
+    
+    .entry-amount {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    
+    .entry-amount.income { color: #48bb78; }
+    .entry-amount.expense { color: #f56565; }
+    .entry-amount.savings { color: #4299e1; }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 30px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    
+    th {
+      background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.9rem;
+    }
+    
+    td {
+      color: #2d3748;
+    }
+    
+    canvas {
+      margin-top: 20px;
+      border-radius: 12px;
+    }
+    
+    .chart-container {
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    
+    .celebration-area {
+      text-align: center;
+      margin-top: 30px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .celebration-emoji {
+      font-size: 3rem;
+      animation: bounce 2s infinite;
+      display: inline-block;
+      margin: 0 10px;
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+    
+    .toggle-animations {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      padding: 10px 15px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      z-index: 100;
+      transition: all 0.3s ease;
+    }
+    
+    .toggle-animations:hover {
+      background: white;
+      transform: scale(1.05);
+    }
+    
+    @media (max-width: 768px) {
+      .main-container {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      h1 {
+        font-size: 2rem;
+      }
+      
+      .left-panel, .right-panel {
+        padding: 20px;
+      }
+      
+      .floating-elements {
+        display: none;
+      }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+</head>
+<body>
+  <!-- Floating decorative elements -->
+  <div class="floating-elements">💰</div>
+  <div class="floating-elements">💵</div>
+  <div class="floating-elements">💸</div>
+  <div class="floating-elements">🏦</div>
+  <div class="floating-elements">💳</div>
+  <div class="floating-elements">🪙</div>
+  
+  <button class="toggle-animations" onclick="toggleAnimations()">✨ Toggle Effects</button>
+  
+  <h1>💰 Budget Tracker</h1>
+  
+  <div class="main-container">
+    <div class="left-panel">
+      <h2 class="panel-title">📊 Add New Entry</h2>
+      <form id="entry-form">
+        <select id="type">
+          <option value="income">💵 Income</option>
+          <option value="expense">💸 Expense</option>
+          <option value="savings">🏦 Savings</option>
+        </select>
+        <input type="number" id="amount" placeholder="Amount ($)" required step="0.01" />
+        <input type="text" id="category" placeholder="Category" required />
+        <input type="text" id="description" placeholder="Description" required />
+        <button type="submit">Add Entry</button>
+      </form>
+
+      <div class="stats-grid">
+        <div class="stat-card income">
+          <div class="stat-label">Total Income</div>
+          <div class="stat-value positive">$<span id="total-income">0.00</span></div>
+        </div>
+        <div class="stat-card expense">
+          <div class="stat-label">Total Expenses</div>
+          <div class="stat-value negative">$<span id="total-expense">0.00</span></div>
+        </div>
+        <div class="stat-card savings">
+          <div class="stat-label">Total Savings</div>
+          <div class="stat-value">$<span id="total-savings">0.00</span></div>
+        </div>
+        <div class="stat-card balance">
+          <div class="stat-label">Balance</div>
+          <div class="stat-value" id="balance-value">$<span id="balance">0.00</span></div>
+        </div>
+      </div>
+
+      <h3 class="panel-title">📝 Recent Entries</h3>
+      <div class="entry-list" id="entries"></div>
+    </div>
+
+    <div class="right-panel">
+      <h3 class="panel-title">📈 Expense Analysis</h3>
+      <table id="expense-table">
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Total Expense</th>
+            <th>Percentage</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+
+      <div class="chart-container">
+        <canvas id="expenseChart" width="400" height="200"></canvas>
+      </div>
+
+      <div class="celebration-area">
+        <div class="celebration-emoji">🎉</div>
+        <div class="celebration-emoji">💰</div>
+        <div class="celebration-emoji">📈</div>
+        <div style="color: white; margin-top: 10px; font-weight: 500;">
+          Track your finances with style!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('entry-form');
+    const type = document.getElementById('type');
+    const amount = document.getElementById('amount');
+    const category = document.getElementById('category');
+    const description = document.getElementById('description');
+    const entriesDiv = document.getElementById('entries');
+    const incomeDisplay = document.getElementById('total-income');
+    const expenseDisplay = document.getElementById('total-expense');
+    const savingsDisplay = document.getElementById('total-savings');
+    const balanceDisplay = document.getElementById('balance');
+    const balanceValue = document.getElementById('balance-value');
+    const expenseTableBody = document.querySelector("#expense-table tbody");
+
+    let entries = [];
+    let animationsEnabled = true;
+
+    function toggleAnimations() {
+      animationsEnabled = !animationsEnabled;
+      const floatingElements = document.querySelectorAll('.floating-elements, .celebration-emoji');
+      floatingElements.forEach(el => {
+        el.style.animationPlayState = animationsEnabled ? 'running' : 'paused';
+      });
+      
+      const button = document.querySelector('.toggle-animations');
+      button.textContent = animationsEnabled ? '✨ Toggle Effects' : '⏸️ Effects Off';
+    }
+
+    function updateDisplay() {
+      entriesDiv.innerHTML = '';
+      expenseTableBody.innerHTML = '';
+      let totalIncome = 0, totalExpense = 0, totalSavings = 0;
+      const expenseByCategory = {};
+
+      if (entries.length === 0) {
+        entriesDiv.innerHTML = '<div style="text-align: center; color: #718096; padding: 20px;">No entries yet. Add your first transaction above! 🚀</div>';
+      }
+
+      entries.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'entry ' + entry.type;
+        div.innerHTML = `
+          <div class="entry-info">
+            <div class="entry-category">${entry.category}</div>
+            <div class="entry-description">${entry.description}</div>
+          </div>
+          <div class="entry-amount ${entry.type}">${entry.type === 'income' ? '+' : '-'}$${entry.amount.toFixed(2)}</div>
+        `;
+        entriesDiv.appendChild(div);
+
+        if (entry.type === 'income') {
+          totalIncome += Number(entry.amount);
+        } else if (entry.type === 'expense') {
+          totalExpense += Number(entry.amount);
+          expenseByCategory[entry.category] = (expenseByCategory[entry.category] || 0) + Number(entry.amount);
+        } else if (entry.type === 'savings') {
+          totalSavings += Number(entry.amount);
+        }
+      });
+
+      const balance = totalIncome - totalExpense - totalSavings;
+
+      incomeDisplay.textContent = totalIncome.toFixed(2);
+      expenseDisplay.textContent = totalExpense.toFixed(2);
+      savingsDisplay.textContent = totalSavings.toFixed(2);
+      balanceDisplay.textContent = balance.toFixed(2);
+      
+      // Update balance color
+      balanceValue.className = 'stat-value ' + (balance >= 0 ? 'positive' : 'negative');
+
+      renderExpenseTable(expenseByCategory, totalExpense);
+      renderExpenseChart(expenseByCategory);
+    }
+
+    function renderExpenseTable(data, total) {
+      Object.entries(data).forEach(([cat, amt]) => {
+        const percentage = total > 0 ? ((amt / total) * 100).toFixed(1) : '0.0';
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${cat}</td>
+          <td>$${amt.toFixed(2)}</td>
+          <td>${percentage}%</td>
+        `;
+        expenseTableBody.appendChild(row);
+      });
+    }
+
+    function renderExpenseChart(data) {
+      const ctx = document.getElementById('expenseChart').getContext('2d');
+      if (window.expenseChartInstance) {
+        window.expenseChartInstance.destroy();
+      }
+      
+      if (Object.keys(data).length === 0) {
+        return;
+      }
+      
+      window.expenseChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: Object.keys(data),
+          datasets: [{
+            label: 'Expenses by Category',
+            data: Object.values(data),
+            backgroundColor: [
+              '#f56565', '#4299e1', '#48bb78', '#ed8936', '#9f7aea', '#38b2ac',
+              '#ec4899', '#f687b3', '#68d391', '#4fd1c7', '#63b3ed', '#a78bfa'
+            ],
+            borderWidth: 3,
+            borderColor: '#ffffff'
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 20,
+                usePointStyle: true,
+                font: {
+                  size: 12
+                }
+              }
+            }
+          },
+          cutout: '60%'
+        }
+      });
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const entryAmount = parseFloat(amount.value);
+      const entryCategory = category.value.trim();
+      const entryDescription = description.value.trim();
+      
+      // Validation
+      if (isNaN(entryAmount) || entryAmount <= 0) {
+        alert('Please enter a valid amount greater than 0');
+        return;
+      }
+      
+      if (!entryCategory) {
+        alert('Please enter a category');
+        return;
+      }
+      
+      if (!entryDescription) {
+        alert('Please enter a description');
+        return;
+      }
+      
+      const entry = {
+        type: type.value,
+        amount: entryAmount,
+        category: entryCategory,
+        description: entryDescription,
+        date: new Date().toLocaleDateString()
+      };
+      
+      entries.push(entry);
+      updateDisplay();
+      form.reset();
+      
+      // Show success feedback
+      const button = form.querySelector('button');
+      const originalText = button.textContent;
+      button.textContent = 'Added! 🎉';
+      button.style.background = '#48bb78';
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.background = '';
+      }, 1000);
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
