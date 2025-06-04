@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Budget Tracker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+        }
+
+        .card h2 i {
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+
+        .card .amount {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .income .amount {
+            color: var(--success);
+        }
+
+        .expense .amount {
+            color: var(--danger);
+        }
+
+        .savings .amount {
+            color: var(--primary);
+        }
+
+        .card .info {
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+
+        .form-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @media (max-width: 768px) {
+            .form-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-card h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--gray);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .transactions {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        .transactions h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .income-row {
+            color: var(--success);
+        }
+
+        .expense-row {
+            color: var(--danger);
+        }
+
+        .delete-btn {
+            background-color: var(--danger);
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .delete-btn:hover {
+            background-color: #d1144a;
+        }
+
+        .chart-container {
+            margin-top: 30px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1.4s ease-out;
+        }
+
+        .chart-container h2 {
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Icons */
+        .icon {
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Budget Tracker</h1>
+            <p class="subtitle">Track your income, expenses, and savings with ease</p>
+        </header>
+
+        <div class="dashboard">
+            <div class="card income">
+                <h2><span class="icon">💰</span> Total Income</h2>
+                <div class="amount" id="total-income">$0.00</div>
+                <div class="info">Your total monthly income</div>
+            </div>
+
+            <div class="card expense">
+                <h2><span class="icon">💸</span> Total Expenses</h2>
+                <div class="amount" id="total-expense">$0.00</div>
+                <div class="info">Your total monthly expenses</div>
+            </div>
+
+            <div class="card savings">
+                <h2><span class="icon">🏦</span> Total Savings</h2>
+                <div class="amount" id="total-savings">$0.00</div>
+                <div class="info">Income minus expenses</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-card">
+                <h2>Add Income</h2>
+                <form id="income-form">
+                    <div class="form-group">
+                        <label for="income-source">Source</label>
+                        <input type="text" id="income-source" placeholder="Salary, Bonus, etc." required>
+                    </div>
+                    <div class="form-group">
+                        <label for="income-amount">Amount</label>
+                        <input type="number" id="income-amount" placeholder="0.00" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="income-date">Date</label>
+                        <input type="date" id="income-date" required>
+                    </div>
+                    <button type="submit" class="pulse">Add Income</button>
+                </form>
+            </div>
+
+            <div class="form-card">
+                <h2>Add Expense</h2>
+                <form id="expense-form">
+                    <div class="form-group">
+                        <label for="expense-category">Category</label>
+                        <select id="expense-category" required>
+                            <option value="">Select a category</option>
+                            <option value="Housing">Housing</option>
+                            <option value="Food">Food</option>
+                            <option value="Transportation">Transportation</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Education">Education</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense-amount">Amount</label>
+                        <input type="number" id="expense-amount" placeholder="0.00" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense-date">Date</label>
+                        <input type="date" id="expense-date" required>
+                    </div>
+                    <button type="submit" class="pulse">Add Expense</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="transactions">
+            <h2>Recent Transactions</h2>
+            <table id="transactions-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="transactions-body">
+                    <!-- Transactions will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="chart-container">
+            <h2>Spending Breakdown</h2>
+            <canvas id="expense-chart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize data
+            let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+            let income = 0;
+            let expenses = 0;
+            let savings = 0;
+
+            // DOM elements
+            const incomeForm = document.getElementById('income-form');
+            const expenseForm = document.getElementById('expense-form');
+            const transactionsBody = document.getElementById('transactions-body');
+            const totalIncomeElement = document.getElementById('total-income');
+            const totalExpenseElement = document.getElementById('total-expense');
+            const totalSavingsElement = document.getElementById('total-savings');
+            const expenseChartCtx = document.getElementById('expense-chart').getContext('2d');
+
+            // Initialize chart
+            let expenseChart = new Chart(expenseChartCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: [
+                            '#FF6384',
+                            '#36A2EB',
+                            '#FFCE56',
+                            '#4BC0C0',
+                            '#9966FF',
+                            '#FF9F40',
+                            '#8AC24A',
+                            '#FF6B6B'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+
+            // Load initial data
+            updateDashboard();
+            renderTransactions();
+            updateChart();
+
+            // Income form submission
+            incomeForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const source = document.getElementById('income-source').value;
+                const amount = parseFloat(document.getElementById('income-amount').value);
+                const date = document.getElementById('income-date').value;
+                
+                const transaction = {
+                    id: Date.now(),
+                    type: 'income',
+                    description: source,
+                    amount: amount,
+                    date: date,
+                    category: 'Income'
+                };
+                
+                transactions.push(transaction);
+                saveData();
+                updateDashboard();
+                renderTransactions();
+                
+                // Reset form
+                incomeForm.reset();
+                
+                // Animation feedback
+                const incomeCard = document.querySelector('.card.income');
+                incomeCard.classList.add('pulse');
+                setTimeout(() => incomeCard.classList.remove('pulse'), 1500);
+            });
+
+            // Expense form submission
+            expenseForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const category = document.getElementById('expense-category').value;
+                const amount = parseFloat(document.getElementById('expense-amount').value);
+                const date = document.getElementById('expense-date').value;
+                
+                const transaction = {
+                    id: Date.now(),
+                    type: 'expense',
+                    description: category,
+                    amount: amount,
+                    date: date,
+                    category: category
+                };
+                
+                transactions.push(transaction);
+                saveData();
+                updateDashboard();
+                renderTransactions();
+                updateChart();
+                
+                // Reset form
+                expenseForm.reset();
+                
+                // Animation feedback
+                const expenseCard = document.querySelector('.card.expense');
+                expenseCard.classList.add('pulse');
+                setTimeout(() => expenseCard.classList.remove('pulse'), 1500);
+            });
+
+            // Delete transaction
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('delete-btn')) {
+                    const id = parseInt(e.target.getAttribute('data-id'));
+                    transactions = transactions.filter(transaction => transaction.id !== id);
+                    saveData();
+                    updateDashboard();
+                    renderTransactions();
+                    updateChart();
+                    
+                    // Animation feedback
+                    e.target.parentElement.parentElement.style.animation = 'fadeOut 0.5s ease-out';
+                    setTimeout(() => {
+                        renderTransactions();
+                    }, 500);
+                }
+            });
+
+            // Save data to localStorage
+            function saveData() {
+                localStorage.setItem('transactions', JSON.stringify(transactions));
+            }
+
+            // Update dashboard totals
+            function updateDashboard() {
+                income = transactions
+                    .filter(t => t.type === 'income')
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                expenses = transactions
+                    .filter(t => t.type === 'expense')
+                    .reduce((sum, t) => sum + t.amount, 0);
+                
+                savings = income - expenses;
+                
+                totalIncomeElement.textContent = `$${income.toFixed(2)}`;
+                totalExpenseElement.textContent = `$${expenses.toFixed(2)}`;
+                totalSavingsElement.textContent = `$${savings.toFixed(2)}`;
+                
+                // Animate number changes
+                animateValue(totalIncomeElement, parseFloat(totalIncomeElement.textContent.replace('$', '')) || 0, income, 1000);
+                animateValue(totalExpenseElement, parseFloat(totalExpenseElement.textContent.replace('$', '')) || 0, expenses, 1000);
+                animateValue(totalSavingsElement, parseFloat(totalSavingsElement.textContent.replace('$', '')) || 0, savings, 1000);
+            }
+
+            // Render transactions table
+            function renderTransactions() {
+                transactionsBody.innerHTML = '';
+                
+                // Sort by date (newest first)
+                const sortedTransactions = [...transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                if (sortedTransactions.length === 0) {
+                    transactionsBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No transactions yet</td></tr>';
+                    return;
+                }
+                
+                sortedTransactions.forEach(transaction => {
+                    const row = document.createElement('tr');
+                    row.classList.add(`${transaction.type}-row`);
+                    
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = new Date(transaction.date).toLocaleDateString();
+                    
+                    const descCell = document.createElement('td');
+                    descCell.textContent = transaction.description;
+                    
+                    const catCell = document.createElement('td');
+                    catCell.textContent = transaction.category;
+                    
+                    const amountCell = document.createElement('td');
+                    amountCell.textContent = `$${transaction.amount.toFixed(2)}`;
+                    
+                    const actionCell = document.createElement('td');
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.classList.add('delete-btn');
+                    deleteBtn.setAttribute('data-id', transaction.id);
+                    actionCell.appendChild(deleteBtn);
+                    
+                    row.appendChild(dateCell);
+                    row.appendChild(descCell);
+                    row.appendChild(catCell);
+                    row.appendChild(amountCell);
+                    row.appendChild(actionCell);
+                    
+                    transactionsBody.appendChild(row);
+                });
+            }
+
+            // Update chart data
+            function updateChart() {
+                const categories = {};
+                
+                transactions
+                    .filter(t => t.type === 'expense')
+                    .forEach(t => {
+                        if (categories[t.category]) {
+                            categories[t.category] += t.amount;
+                        } else {
+                            categories[t.category] = t.amount;
+                        }
+                    });
+                
+                expenseChart.data.labels = Object.keys(categories);
+                expenseChart.data.datasets[0].data = Object.values(categories);
+                expenseChart.update();
+            }
+
+            // Helper function to animate value changes
+            function animateValue(element, start, end, duration) {
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const value = progress * (end - start) + start;
+                    element.textContent = `$${value.toFixed(2)}`;
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+
+            // Add fadeOut animation dynamically
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeOut {
+                    from { opacity: 1; transform: translateX(0); }
+                    to { opacity: 0; transform: translateX(100px); }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Set today's date as default for date inputs
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('income-date').value = today;
+            document.getElementById('expense-date').value = today;
+        });
+    </script>
+</body>
+</html>
